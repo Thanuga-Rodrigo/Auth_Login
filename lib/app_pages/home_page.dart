@@ -40,17 +40,26 @@ class HomePage extends StatelessWidget {
           }
 
           final userData = snapshot.data!;
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircleAvatar(
-                radius: 40,
-                backgroundImage: NetworkImage(userData['profile_picture']),
-              ),
-              SizedBox(height: 10),
-              Text('Name: ${userData['name']}'),
-              Text('Email: ${userData['email']}'),
-            ],
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                CircleAvatar(
+                  radius: 60,
+                  backgroundImage: NetworkImage(userData['profile_picture_url']),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  '${userData['firstName']} ${userData['lastName']}',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold ),
+                ),
+                Text(
+                  '${userData['email']}',
+                  style: TextStyle(fontSize: 16),
+                ),
+              ],
+            ),
           );
         },
       ),

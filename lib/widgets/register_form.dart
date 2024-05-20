@@ -1,3 +1,6 @@
+import 'dart:ui';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -11,9 +14,12 @@ class RegisterForm extends StatefulWidget {
 class _RegisterFormState extends State<RegisterForm> {
   final _formKey = GlobalKey<FormState>();
   String _email = '';
-  String _name = '';
+  String _firstName = '';
+  String _lastName = '';
   String _password = '';
   File? _imageFile;
+  String? _errorMessage;
+  bool _isLoading = false;
 
   void _pickImage() async {
     final pickedImage = await ImagePicker().pickImage(source: ImageSource.gallery);
@@ -27,11 +33,38 @@ class _RegisterFormState extends State<RegisterForm> {
     if (isValid && _imageFile != null) {
       _formKey.currentState!.save();
       final authService = AuthService();
-      final user = await authService.registerWithEmail(_email, _password, _name, _imageFile!);
-      if (user != null) {
-        Navigator.of(context).pushReplacementNamed('/home');
+      setState(() {
+        _isLoading = true;
+      });
+      try {
+        final user = await authService.registerWithEmail(_email, _password, _firstName, _lastName, _imageFile!);
+        if (user != null) {
+          // Registration successful
+          setState((){
+            _errorMessage = null;
+            _isLoading = false;
+          });
+          _showSuccessMessage();
+          // Navigate to login page
+          Navigator.of(context).pushReplacementNamed('/login');
+        }
+      } catch (e) {
+        // Handle Firebase auth exceptions
+        setState(() {
+          _errorMessage = e.toString();
+          _isLoading = false;
+        });
       }
     }
+  }
+
+  void _showSuccessMessage() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Registration successful!'),
+        duration: Duration(seconds: 2),
+      ),
+    );
   }
 
   @override
@@ -44,16 +77,29 @@ class _RegisterFormState extends State<RegisterForm> {
           mainAxisSize: MainAxisSize.min,
           children: [
             TextFormField(
-              key: ValueKey('name'),
+              key: ValueKey('Firstname'),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter your name.';
+                  return 'Please enter your first name.';
                 }
                 return null;
               },
-              decoration: InputDecoration(labelText: 'Name'),
+              decoration: InputDecoration(labelText: 'First Name'),
               onSaved: (value) {
-                _name = value!;
+                _firstName = value!;
+              },
+            ),
+            TextFormField(
+              key: ValueKey('Lastname'),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter your last name.';
+                }
+                return null;
+              },
+              decoration: InputDecoration(labelText: 'Last Name'),
+              onSaved: (value) {
+                _lastName = value!;
               },
             ),
             TextFormField(
@@ -101,10 +147,15 @@ class _RegisterFormState extends State<RegisterForm> {
                 ),
               ],
             ),
+            if (_errorMessage != null)
+              Text(
+                _errorMessage!,
+                style: TextStyle(color: Colors.red),
+              ),
             SizedBox(height: 12),
             ElevatedButton(
-              child: Text('Register'),
-              onPressed: _trySubmit,
+              child: _isLoading ? CircularProgressIndicator() : Text('Register'), // Show loader or text based on loading state
+              onPressed: _isLoading ? null : _trySubmit, // Disable button if loading
             ),
           ],
         ),

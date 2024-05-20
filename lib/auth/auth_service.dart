@@ -5,8 +5,8 @@ import 'dart:io';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
-  final FirebaseStorage _storage = FirebaseStorage.instance;
+  final CollectionReference _usersCollection = FirebaseFirestore.instance.collection('users');
+  final Reference _storageReference = FirebaseStorage.instance.ref();
 
   Future<User?> signInWithEmail(String email, String password) async {
     try {
@@ -18,34 +18,42 @@ class AuthService {
     }
   }
 
-  Future<User?> registerWithEmail(String email, String password, String name, File image) async {
+  Future<User?> registerWithEmail(String email, String password, String firstName, String lastName, File imageFile) async {
     try {
-      UserCredential result = await _auth.createUserWithEmailAndPassword(email: email, password: password);
-      User? user = result.user;
+      final UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
 
-      if (user != null) {
-        String imageUrl = await _uploadProfilePicture(user.uid, image);
-        await _db.collection('users').doc(user.uid).set({
-          'uid': user.uid,
-          'email': email,
-          'name': name,
-          'profile_picture': imageUrl,
-        });
-      }
-      return user;
+      final userId = userCredential.user!.uid;
+
+      // Upload profile picture to Firebase Storage
+      final profilePictureUrl = await _uploadProfilePicture(userId, imageFile);
+
+      // Add user data to Firestore
+      await _addUserToFirestore(userId, firstName, lastName, email, profilePictureUrl);
+
+      return userCredential.user;
     } catch (e) {
-      print(e.toString());
-      return null;
+      throw e;
     }
   }
 
-  Future<String> _uploadProfilePicture(String uid, File image) async {
-    Reference ref = _storage.ref().child('user_profile_pictures').child('$uid.jpg');
-    UploadTask uploadTask = ref.putFile(image);
-    TaskSnapshot snapshot = await uploadTask;
-    return await snapshot.ref.getDownloadURL();
+   Future<String> _uploadProfilePicture(String userId, File imageFile) async {
+    final storageReference = _storageReference.child('$userId/profile.jpg');
+    await storageReference.putFile(imageFile);
+    return await storageReference.getDownloadURL();
   }
 
+  Future<void> _addUserToFirestore(String userId, String firstName, String lastName, String email, String profilePictureUrl) async {
+    await _usersCollection.doc(userId).set({
+      'firstName': firstName,
+      'lastName': lastName,
+      'email': email,
+      'profile_picture_url': profilePictureUrl,
+    });
+  }
+  
   Future<void> signOut() async {
     await _auth.signOut();
   }

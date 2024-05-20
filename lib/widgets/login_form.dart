@@ -10,15 +10,24 @@ class _LoginFormState extends State<LoginForm> {
   final _formKey = GlobalKey<FormState>();
   String _email = '';
   String _password = '';
+  bool _isLoading = false;
 
   void _trySubmit() async {
     final isValid = _formKey.currentState!.validate();
-    if (isValid) {
+    if (isValid && !_isLoading) {
       _formKey.currentState!.save();
       final authService = AuthService();
+      setState(() {
+        _isLoading = true;
+      });
       final user = await authService.signInWithEmail(_email, _password);
       if (user != null) {
+        setState(() {
+          _isLoading = false;
+        });
         Navigator.of(context).pushReplacementNamed('/home');
+      }else{
+        _isLoading = false;
       }
     }
   }
@@ -62,8 +71,8 @@ class _LoginFormState extends State<LoginForm> {
             ),
             SizedBox(height: 12),
             ElevatedButton(
-              child: Text('Login'),
-              onPressed: _trySubmit,
+              child: _isLoading ? CircularProgressIndicator() : Text('Login'), // Show loader or text based on loading state
+              onPressed: _isLoading ? null : _trySubmit, // Disable button if loading
             ),
           ],
         ),
