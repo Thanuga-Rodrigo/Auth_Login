@@ -8,7 +8,28 @@ class RegisterPage extends StatelessWidget {
       appBar: AppBar(
         title: Text('Register'),
       ),
-      body: RegisterForm(),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'Register',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
+          RegisterForm(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text("Already registered?"),
+              TextButton(
+                child: Text("Login"),
+                onPressed: () {
+                  Navigator.of(context).pushReplacementNamed('/login');
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

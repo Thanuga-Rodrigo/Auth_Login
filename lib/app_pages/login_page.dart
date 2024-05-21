@@ -12,7 +12,24 @@ class LoginPage extends StatelessWidget {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          Text(
+            'Welcome',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
           LoginForm(),
+          SizedBox(height: 1),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text("Not registered?"),
+              TextButton(
+                child: Text('Register Now'),
+                onPressed: () {
+                  Navigator.of(context).pushNamed('/register');
+                },
+              ),
+            ],
+          ),
           SizedBox(height: 10),
           ElevatedButton.icon(
             icon: Icon(Icons.login),
@@ -32,13 +49,7 @@ class LoginPage extends StatelessWidget {
               }
             },
           ),
-          SizedBox(height: 10),
-          TextButton(
-            child: Text('Register Here'),
-            onPressed: () {
-              Navigator.of(context).pushNamed('/register');
-            },
-          ),
+          
         ],
       ),
     );
