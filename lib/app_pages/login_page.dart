@@ -19,8 +19,17 @@ class LoginPage extends StatelessWidget {
             label: Text('Sign in with Google'),
             onPressed: () async {
               final provider = GoogleSignInProvider();
-              await provider.signInWithGoogle();
-              Navigator.of(context).pushReplacementNamed('/home');
+              final user = await provider.signInWithGoogle(context);
+
+              if (user != null) {
+                // If user signed in successfully, navigate to the home page
+                Navigator.of(context).pushReplacementNamed('/home');
+              } else {
+                // Handle sign-in failure
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text('Failed to sign in with Google. Please try again.'),
+                ));
+              }
             },
           ),
           SizedBox(height: 10),

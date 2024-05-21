@@ -16,15 +16,6 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Home Page'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.logout),
-            onPressed: () async {
-              await _authService.signOut();
-              Navigator.of(context).pushReplacementNamed('/login');
-            },
-          ),
-        ],
       ),
       body: FutureBuilder<DocumentSnapshot>(
         future: _fetchUserData(),
@@ -57,6 +48,14 @@ class HomePage extends StatelessWidget {
                 Text(
                   '${userData['email']}',
                   style: TextStyle(fontSize: 16),
+                ),
+                 SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () async {
+                    await _authService.signOut();
+                    Navigator.of(context).pushReplacementNamed('/login');
+                  },
+                  child: Text('Sign Out'),
                 ),
               ],
             ),

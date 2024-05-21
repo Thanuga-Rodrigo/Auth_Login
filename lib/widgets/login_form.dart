@@ -20,16 +20,45 @@ class _LoginFormState extends State<LoginForm> {
       setState(() {
         _isLoading = true;
       });
-      final user = await authService.signInWithEmail(_email, _password);
-      if (user != null) {
+
+      try {
+        final user = await authService.signInWithEmail(_email, _password);
         setState(() {
           _isLoading = false;
         });
-        Navigator.of(context).pushReplacementNamed('/home');
-      }else{
-        _isLoading = false;
+        if (user != null) {
+          Navigator.of(context).pushReplacementNamed('/home');
+        }
+      } on AuthException catch (e) {
+        setState(() {
+          _isLoading = false;
+        });
+        _showErrorDialog(e.message);
+      } catch (e) {
+        setState(() {
+          _isLoading = false;
+        });
+        _showErrorDialog('An unexpected error occurred. Please try again.');
       }
     }
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Authentication Error'),
+        content: Text(message),
+        actions: <Widget>[
+          TextButton(
+            child: Text('Okay'),
+            onPressed: () {
+              Navigator.of(ctx).pop();
+            },
+          )
+        ],
+      ),
+    );
   }
 
   @override
@@ -71,8 +100,8 @@ class _LoginFormState extends State<LoginForm> {
             ),
             SizedBox(height: 12),
             ElevatedButton(
-              child: _isLoading ? CircularProgressIndicator() : Text('Login'), // Show loader or text based on loading state
-              onPressed: _isLoading ? null : _trySubmit, // Disable button if loading
+              child: _isLoading ? CircularProgressIndicator() : Text('Login'),
+              onPressed: _isLoading ? null : _trySubmit,
             ),
           ],
         ),

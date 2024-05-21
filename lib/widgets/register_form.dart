@@ -22,15 +22,44 @@ class _RegisterFormState extends State<RegisterForm> {
   bool _isLoading = false;
 
   void _pickImage() async {
-    final pickedImage = await ImagePicker().pickImage(source: ImageSource.gallery);
-    setState(() {
-      _imageFile = File(pickedImage!.path);
-    });
+    final imageSource = await showDialog<ImageSource>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Select Image Source"),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(ImageSource.camera),
+              child: Text("Camera"),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(ImageSource.gallery),
+              child: Text("Gallery"),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (imageSource != null) {
+      final pickedImage = await ImagePicker().pickImage(source: imageSource);
+      if (pickedImage != null) {
+        setState(() {
+          _imageFile = File(pickedImage.path);
+        });
+      }
+    }
   }
 
   void _trySubmit() async {
     final isValid = _formKey.currentState!.validate();
-    if (isValid && _imageFile != null) {
+    if (isValid) {
+      if (_imageFile == null) {
+        setState(() {
+          _errorMessage = 'Please select an image.';
+        });
+        return;
+      }
       _formKey.currentState!.save();
       final authService = AuthService();
       setState(() {
@@ -61,8 +90,8 @@ class _RegisterFormState extends State<RegisterForm> {
   void _showSuccessMessage() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Registration successful!'),
-        duration: Duration(seconds: 2),
+        content: Text('Registration successful! Check your email for the verification'),
+        duration: Duration(seconds: 4),
       ),
     );
   }
